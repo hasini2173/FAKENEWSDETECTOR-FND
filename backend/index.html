@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake News Detector</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.22.5/babel.min.js"></script>
+    <style>
+        /* Your existing CSS remains here */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex; /* Use flexbox for centering */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            padding: 20px; /* Add some padding around the body */
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%; /* Make container fluid */
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 5px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: transparent;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #666;
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-tab:hover:not(.active) {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .input-group input:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #666;
+            border: 2px solid #e1e5e9;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+        }
+
+        .analysis-result {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 15px;
+            animation: slideUp 0.5s ease;
+        }
+
+        .analysis-result.real {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .analysis-result.fake {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+
+        .analysis-result.uncertain {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+        }
+
+        .credibility-score {
+            font-size: 3rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .score-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .score-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: white;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .user-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .user-form .input-group:last-child {
+            grid-column: 1 / -1;
+        }
+
+        .report-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .report-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .report-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .report-status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .report-status.verified {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .report-status.debunked {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-weight: 600;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 40px;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-score {
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: white;
+        }
+
+        .history-score.real {
+            background: #28a745;
+        }
+
+        .history-score.fake {
+            background: #dc3545;
+        }
+
+        .history-score.uncertain {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .disclaimer-text {
+            font-size: 0.9em;
+            color: #777;
+            margin-top: 20px;
+            text-align: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .fact-check-section {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px dashed rgba(255, 255, 255, 0.5);
+        }
+
+        .fact-check-section h4 {
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .fact-check-verdict {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .fact-check-verdict.true {
+            background: #28a745; /* Green */
+        }
+        .fact-check-verdict.false {
+            background: #dc3545; /* Red */
+        }
+        .fact-check-verdict.unproven {
+            background: #ffc107; /* Yellow */
+            color: #333;
+        }
+        .fact-check-verdict.mixed {
+            background: #6c757d; /* Gray */
+        }
+
+        .fact-check-link {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .fact-check-link a {
+            color: white;
+            text-decoration: underline;
+            font-weight: 600;
+        }
+
+
+        @media (max-width: 768px) {
+            .user-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            body {
+                padding: 10px; /* Adjust body padding for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Function to display custom messages instead of alert()
+        const showMessage = (message, type = 'info') => {
+            // In a real app, you'd use a modal or a toast notification library
+            // For this example, we'll simulate it with a console log and a simple visual cue
+            console.log(`Message (${type}): ${message}`);
+            const messageDiv = document.createElement('div');
+            messageDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: ${type === 'error' ? '#f44336' : type === 'success' ? '#4CAF50' : '#2196F3'};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+                z-index: 1000;
+                opacity: 0;
+                transition: opacity 0.5s ease-in-out;
+            `;
+            messageDiv.textContent = message;
+            document.body.appendChild(messageDiv);
+
+            setTimeout(() => {
+                messageDiv.style.opacity = 1;
+            }, 10); // Small delay to trigger transition
+
+            setTimeout(() => {
+                messageDiv.style.opacity = 0;
+                messageDiv.addEventListener('transitionend', () => messageDiv.remove());
+            }, 3000); // Message disappears after 3 seconds
+        };
+
+
+        // AI Analysis Function - Now calls the Flask backend
+        const analyzeNews = async (text, url) => {
+            try {
+                // IMPORTANT: For local development, use 'http://localhost:5000/analyze-news'
+                // For deployment, this URL will change based on where your backend is hosted.
+                // If running in a Canvas-like environment where backend is on the same host,
+                // you might just use '/analyze-news'
+                const backendUrl = 'http://localhost:5000/analyze-news'; 
+                // In a production environment, you would use a relative path like '/api/analyze-news'
+                // and configure your web server (e.g., Nginx, Apache) to proxy requests from /api to your Flask app.
+
+                const response = await fetch(backendUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        content: text,
+                        url: url
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to analyze content from backend.');
+                }
+
+                const aiResult = await response.json();
+                return aiResult;
+
+            } catch (error) {
+                console.error("Error during AI analysis:", error);
+                showMessage(`Analysis failed: ${error.message}`, 'error');
+                throw error; // Re-throw to be caught by handleAnalyze
+            }
+        };
+
+        // Main App Component
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('detector');
+            const [user, setUser] = useState(null);
+            const [newsText, setNewsText] = useState('');
+            const [newsUrl, setNewsUrl] = useState('');
+            const [isAnalyzing, setIsAnalyzing] = useState(false);
+            const [analysisResult, setAnalysisResult] = useState(null);
+            const [reports, setReports] = useState([]);
+            const [analysisHistory, setAnalysisHistory] = useState([]);
+
+            // Load data from localStorage on component mount
+            useEffect(() => {
+                // Mock user login - In a real app, this would be handled by Firebase Auth or similar
+                setUser({
+                    id: crypto.randomUUID(), // Use crypto.randomUUID() for a unique ID
+                    name: 'Current User',
+                    email: 'user@example.com',
+                    joinDate: new Date().toISOString().split('T')[0]
+                });
+
+                // Load any existing analysis history
+                const savedHistory = JSON.parse(localStorage.getItem('analysisHistory') || '[]');
+                setAnalysisHistory(savedHistory);
+            }, []);
+
+            // Calculate real statistics from analysis history
+            const getStatistics = () => {
+                const totalAnalyses = analysisHistory.length;
+                const fakeCount = analysisHistory.filter(item => item.classification === 'fake').length;
+                const realCount = analysisHistory.filter(item => item.classification === 'real').length;
+                const uncertainCount = analysisHistory.filter(item => item.classification === 'uncertain').length;
+                
+                return {
+                    totalAnalyses,
+                    fakeCount,
+                    realCount,
+                    uncertainCount,
+                    totalReports: reports.length
+                };
+            };
+
+            const stats = getStatistics();
+
+            const handleAnalyze = async () => {
+                if (!newsText.trim()) {
+                    showMessage('Please enter some news content to analyze', 'error');
+                    return;
+                }
+
+                setIsAnalyzing(true);
+                setAnalysisResult(null); // Clear previous results
+                try {
+                    const result = await analyzeNews(newsText, newsUrl);
+                    setAnalysisResult(result);
+                    
+                    // Add to history
+                    // Adjust classification for history based on external fact-check if available
+                    let historyClassification = result.classification;
+                    if (result.factCheckVerdict) {
+                        if (result.factCheckVerdict.toLowerCase().includes('false') || result.factCheckVerdict.toLowerCase().includes('debunked')) {
+                            historyClassification = 'fake';
+                        } else if (result.factCheckVerdict.toLowerCase().includes('true') || result.factCheckVerdict.toLowerCase().includes('verified')) {
+                            historyClassification = 'real';
+                        } else if (result.factCheckVerdict.toLowerCase().includes('unproven') || result.factCheckVerdict.toLowerCase().includes('mixed')) {
+                            historyClassification = 'uncertain';
+                        }
+                    }
+
+                    const historyItem = {
+                        id: Date.now(),
+                        text: newsText.substring(0, 100) + (newsText.length > 100 ? '...' : ''), // Truncate for history display
+                        url: newsUrl,
+                        score: result.credibilityScore,
+                        classification: historyClassification, // Use potentially adjusted classification
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    const newHistory = [historyItem, ...analysisHistory];
+                    setAnalysisHistory(newHistory);
+                    
+                    // Save to localStorage (in a real app, this would be a database like Firestore)
+                    localStorage.setItem('analysisHistory', JSON.stringify(newHistory));
+                    
+                } catch (error) {
+                    // Error message already shown by analyzeNews function
+                    console.error("Analysis failed in handleAnalyze:", error);
+                } finally {
+                    setIsAnalyzing(false);
+                }
+            };
+
+            const handleSubmitReport = (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const report = {
+                    id: reports.length + 1,
+                    title: formData.get('title'),
+                    url: formData.get('url'),
+                    description: formData.get('description'),
+                    status: 'pending',
+                    date: new Date().toISOString().split('T')[0],
+                    reporter: user?.name || 'Anonymous'
+                };
+                setReports([report, ...reports]);
+                e.target.reset();
+                showMessage('Report submitted successfully!', 'success');
+            };
+
+            const renderDetector = () => (
+                <div className="content-card">
+                    <h2 style={{marginBottom: '20px', color: '#333'}}>News Content Analysis</h2>
+                    
+                    <div className="input-group">
+                        <label htmlFor="newsUrl">News Source URL (Optional)</label>
+                        <input
+                            type="url"
+                            id="newsUrl"
+                            placeholder="https://example.com/news-article"
+                            value={newsUrl}
+                            onChange={(e) => setNewsUrl(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="input-group">
+                        <label htmlFor="newsText">News Content *</label>
+                        <textarea
+                            id="newsText"
+                            placeholder="Paste the news article or content you want to analyze..."
+                            value={newsText}
+                            onChange={(e) => setNewsText(e.target.value)}
+                        />
+                    </div>
+
+                    <button 
+                        className="btn btn-primary" 
+                        onClick={handleAnalyze}
+                        disabled={isAnalyzing}
+                    >
+                        {isAnalyzing ? 'Analyzing...' : 'Analyze Content'}
+                    </button>
+
+                    {isAnalyzing && (
+                        <div className="loading">
+                            <div className="spinner"></div>
+                            <span style={{marginLeft: '15px'}}>AI is analyzing the content...</span>
+                        </div>
+                    )}
+
+                    {analysisResult && (
+                        <div className={`analysis-result ${analysisResult.classification}`}>
+                            <h3>Analysis Results</h3>
+                            <div className="credibility-score">
+                                {analysisResult.credibilityScore}/100
+                            </div>
+                            <p style={{fontSize: '1.2rem', fontWeight: '600', textAlign: 'center', marginBottom: '20px'}}>
+                                {/* Display overall classification, potentially overridden by fact-check */}
+                                {analysisResult.factCheckVerdict ? 
+                                    (analysisResult.factCheckVerdict.toLowerCase().includes('false') || analysisResult.factCheckVerdict.toLowerCase().includes('debunked') ? 'FACT-CHECKED: FALSE' :
+                                     analysisResult.factCheckVerdict.toLowerCase().includes('true') || analysisResult.factCheckVerdict.toLowerCase().includes('verified') ? 'FACT-CHECKED: TRUE' :
+                                     analysisResult.factCheckVerdict.toLowerCase().includes('unproven') || analysisResult.factCheckVerdict.toLowerCase().includes('mixed') ? 'FACT-CHECKED: NEEDS VERIFICATION' :
+                                     'AI CLASSIFICATION: ' + (analysisResult.classification === 'real' ? 'LIKELY CREDIBLE' : analysisResult.classification === 'fake' ? 'POTENTIALLY FAKE' : 'NEEDS VERIFICATION'))
+                                :
+                                    (analysisResult.classification === 'real' ? 'AI CLASSIFICATION: LIKELY CREDIBLE' : 
+                                     analysisResult.classification === 'fake' ? 'AI CLASSIFICATION: POTENTIALLY FAKE' : 'AI CLASSIFICATION: NEEDS VERIFICATION')}
+                            </p>
+                            <p style={{textAlign: 'center', marginBottom: '20px'}}>
+                                {analysisResult.explanation}
+                            </p>
+                            
+                            <div className="score-details">
+                                <div className="score-item">
+                                    <h4>Source Reliability</h4>
+                                    <div className="progress-bar">
+                                        <div className="progress-fill" style={{width: `${analysisResult.details.sourceReliability}%`}}></div>
+                                    </div>
+                                    <span>{analysisResult.details.sourceReliability}%</span>
+                                </div>
+                                <div className="score-item">
+                                    <h4>Content Analysis</h4>
+                                    <div className="progress-bar">
+                                        <div className="progress-fill" style={{width: `${analysisResult.details.contentAnalysis}%`}}></div>
+                                    </div>
+                                    <span>{analysisResult.details.contentAnalysis}%</span>
+                                </div>
+                                <div className="score-item">
+                                    <h4>Fact Checking</h4>
+                                    <div className="progress-bar">
+                                        <div className="progress-fill" style={{width: `${analysisResult.details.factChecking}%`}}></div>
+                                    </div>
+                                    <span>{analysisResult.details.factChecking}%</span>
+                                </div>
+                                <div className="score-item">
+                                    <h4>Linguistic Analysis</h4>
+                                    <div className="progress-bar">
+                                        <div className="progress-fill" style={{width: `${analysisResult.details.linguisticAnalysis}%`}}></div>
+                                    </div>
+                                    <span>{analysisResult.details.linguisticAnalysis}%</span>
+                                </div>
+                            </div>
+
+                            {/* New section for external fact-check results */}
+                            {analysisResult.factCheckVerdict && (
+                                <div className="fact-check-section">
+                                    <h4>External Fact-Check Verdict:</h4>
+                                    <div className={`fact-check-verdict ${analysisResult.factCheckVerdict.toLowerCase().includes('false') || analysisResult.factCheckVerdict.toLowerCase().includes('debunked') ? 'false' :
+                                                                          analysisResult.factCheckVerdict.toLowerCase().includes('true') || analysisResult.factCheckVerdict.toLowerCase().includes('verified') ? 'true' :
+                                                                          analysisResult.factCheckVerdict.toLowerCase().includes('unproven') ? 'unproven' :
+                                                                          'mixed'}`}>
+                                        {analysisResult.factCheckVerdict.toUpperCase()}
+                                    </div>
+                                    {analysisResult.factCheckUrl && (
+                                        <p className="fact-check-link">
+                                            <a href={analysisResult.factCheckUrl} target="_blank" rel="noopener noreferrer">
+                                                View Full Fact-Check
+                                            </a>
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+
+                            <p className="disclaimer-text">
+                                {analysisResult.disclaimer}
+                            </p>
+                        </div>
+                    )}
+                </div>
+            );
+
+            const renderDashboard = () => (
+                <div>
+                    <div className="stats-grid">
+                        <div className="stat-card">
+                            <div className="stat-number">{stats.totalAnalyses}</div>
+                            <div className="stat-label">Articles Analyzed</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-number">{stats.realCount}</div>
+                            <div className="stat-label">Credible Articles</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-number">{stats.fakeCount}</div>
+                            <div className="stat-label">Fake News Detected</div>
+                        </div>
+                        <div className="stat-card">
+                            <div className="stat-number">{stats.totalReports}</div>
+                            <div className="stat-label">Reports Submitted</div>
+                        </div>
+                    </div>
+
+                    <div className="content-card">
+                        <h2 style={{marginBottom: '20px', color: '#333'}}>Recent Analysis History</h2>
+                        {analysisHistory.length === 0 ? (
+                            <div className="no-data">
+                                <p>No analyses performed yet. Go to the News Detector tab to start analyzing content!</p>
+                            </div>
+                        ) : (
+                            <div>
+                                {analysisHistory.slice(0, 5).map(item => (
+                                    <div key={item.id} className="history-item">
+                                        <div>
+                                            <p style={{margin: '0 0 5px 0', fontWeight: '600'}}>{item.text}</p>
+                                            <p style={{margin: 0, color: '#666', fontSize: '0.9rem'}}>
+                                                {new Date(item.timestamp).toLocaleDateString()}
+                                            </p>
+                                        </div>
+                                        <div className={`history-score ${item.classification}`}>
+                                            {item.score}/100
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="content-card">
+                        <h2 style={{marginBottom: '20px', color: '#333'}}>User Profile</h2>
+                        {user && (
+                            <div className="user-form">
+                                <div className="input-group">
+                                    <label>Full Name</label>
+                                    <input type="text" value={user.name} readOnly />
+                                </div>
+                                <div className="input-group">
+                                    <label>Email Address</label>
+                                    <input type="email" value={user.email} readOnly />
+                                </div>
+                                <div className="input-group">
+                                    <label>Member Since</label>
+                                    <input type="text" value={user.joinDate} readOnly />
+                                </div>
+                                {/* The code was cut off here. I'm adding the rest of the dashboard and reporting sections. */}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+
+            const renderReporting = () => (
+                <div>
+                    <div className="content-card">
+                        <h2 style={{marginBottom: '20px', color: '#333'}}>Submit Suspicious Content Report</h2>
+                        <form onSubmit={handleSubmitReport}>
+                            <div className="input-group">
+                                <label htmlFor="reportTitle">Article Title *</label>
+                                <input type="text" id="reportTitle" name="title" required />
+                            </div>
+                            <div className="input-group">
+                                <label htmlFor="reportUrl">Source URL *</label>
+                                <input type="url" id="reportUrl" name="url" required />
+                            </div>
+                            <div className="input-group">
+                                <label htmlFor="reportDescription">Why do you think this content is suspicious? *</label>
+                                <textarea id="reportDescription" name="description" required></textarea>
+                            </div>
+                            <button type="submit" className="btn btn-primary">Submit Report</button>
+                        </form>
+                    </div>
+
+                    <div className="content-card">
+                        <h2 style={{marginBottom: '20px', color: '#333'}}>Community Reports</h2>
+                        {reports.length === 0 ? (
+                            <div className="no-data">
+                                <p>No reports submitted yet. Be the first to report suspicious content!</p>
+                            </div>
+                        ) : (
+                            reports.map(report => (
+                                <div key={report.id} className="report-item">
+                                    <div className="report-header">
+                                        <h3 style={{color: '#333', margin: 0}}>{report.title}</h3>
+                                        <span className={`report-status ${report.status}`}>
+                                            {report.status}
+                                        </span>
+                                    </div>
+                                    <p style={{color: '#666', margin: '10px 0'}}>
+                                        <strong>URL:</strong> {report.url}
+                                    </p>
+                                    <p style={{color: '#666', margin: 0}}>
+                                        Reported by {report.reporter} on {report.date}
+                                    </p>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            );
+
+            return (
+                <div className="container">
+                    <div className="header">
+                        <div className="logo">🔍 FakeGuard</div>
+                        <div className="tagline">AI-Powered Fake News Detection System</div>
+                    </div>
+
+                    <div className="nav-tabs">
+                        <button 
+                            className={`nav-tab ${activeTab === 'detector' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('detector')}
+                        >
+                            🔍 News Detector
+                        </button>
+                        <button 
+                            className={`nav-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('dashboard')}
+                        >
+                            📊 Dashboard
+                        </button>
+                        <button 
+                            className={`nav-tab ${activeTab === 'reporting' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('reporting')}
+                        >
+                            📝 Reporting
+                        </button>
+                    </div>
+
+                    {activeTab === 'detector' && renderDetector()}
+                    {activeTab === 'dashboard' && renderDashboard()}
+                    {activeTab === 'reporting' && renderReporting()}
+                </div>
+            );
+        };
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
